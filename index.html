@@ -237,4 +237,166 @@
             <div class="subject-card" id="card-math">
                 <div class="subject-info">
                     <div class="subject-name">Mathematics</div>
-                    <div class="time-display" id="time-math
+                    <div class="time-display" id="time-math">0000:00:00</div>
+                </div>
+                <button class="btn-control" onclick="toggleTimer('math')">
+                    <span class="icon" id="icon-math">▶</span> <span id="text-math">开始计时</span>
+                </button>
+            </div>
+
+            <div class="subject-card" id="card-english">
+                <div class="subject-info">
+                    <div class="subject-name">English</div>
+                    <div class="time-display" id="time-english">0000:00:00</div>
+                </div>
+                <button class="btn-control" onclick="toggleTimer('english')">
+                    <span class="icon" id="icon-english">▶</span> <span id="text-english">开始计时</span>
+                </button>
+            </div>
+
+            <div class="subject-card" id="card-physics">
+                <div class="subject-info">
+                    <div class="subject-name">Physics</div>
+                    <div class="time-display" id="time-physics">0000:00:00</div>
+                </div>
+                <button class="btn-control" onclick="toggleTimer('physics')">
+                    <span class="icon" id="icon-physics">▶</span> <span id="text-physics">开始计时</span>
+                </button>
+            </div>
+
+            <div class="subject-card" id="card-chemistry">
+                <div class="subject-info">
+                    <div class="subject-name">Chemistry</div>
+                    <div class="time-display" id="time-chemistry">0000:00:00</div>
+                </div>
+                <button class="btn-control" onclick="toggleTimer('chemistry')">
+                    <span class="icon" id="icon-chemistry">▶</span> <span id="text-chemistry">开始计时</span>
+                </button>
+            </div>
+
+            <div class="subject-card" id="card-biology">
+                <div class="subject-info">
+                    <div class="subject-name">Biology</div>
+                    <div class="time-display" id="time-biology">0000:00:00</div>
+                </div>
+                <button class="btn-control" onclick="toggleTimer('biology')">
+                    <span class="icon" id="icon-biology">▶</span> <span id="text-biology">开始计时</span>
+                </button>
+            </div>
+
+            <div class="subject-card" id="card-computer">
+                <div class="subject-info">
+                    <div class="subject-name">computer</div>
+                    <div class="time-display" id="time-computer">0000:00:00</div>
+                </div>
+                <button class="btn-control" onclick="toggleTimer('computer')">
+                    <span class="icon" id="icon-computer">▶</span> <span id="text-computer">开始计时</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="total-panel">
+            <div class="total-title">Total Study Time</div>
+            <div class="total-time" id="time-total">0000:00:00</div>
+        </div>
+    </div>
+
+    <script>
+        let timers = {
+            chinese: parseInt(localStorage.getItem('timer_chinese')) || 0,
+            math: parseInt(localStorage.getItem('timer_math')) || 0,
+            english: parseInt(localStorage.getItem('timer_english')) || 0,
+            physics: parseInt(localStorage.getItem('timer_physics')) || 0,
+            chemistry: parseInt(localStorage.getItem('timer_chemistry')) || 0,
+            biology: parseInt(localStorage.getItem('timer_biology')) || 0,
+            computer: parseInt(localStorage.getItem('timer_computer')) || 0
+        };
+
+        let activeSubject = localStorage.getItem('active_subject') || null;
+        let intervalId = null;
+        let lastUpdateTime = Date.now();
+
+        function formatTime(totalSeconds) {
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            const paddedHours = String(hours).padStart(4, '0');
+            const paddedMinutes = String(minutes).padStart(2, '0');
+            const paddedSeconds = String(seconds).padStart(2, '0');
+
+            return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
+        }
+
+        function updateDisplay() {
+            let totalSeconds = 0;
+            
+            for (let sub in timers) {
+                if (document.getElementById(`time-${sub}`)) {
+                    document.getElementById(`time-${sub}`).innerText = formatTime(timers[sub]);
+                    totalSeconds += timers[sub];
+
+                    const card = document.getElementById(`card-${sub}`);
+                    const icon = document.getElementById(`icon-${sub}`);
+                    const text = document.getElementById(`text-${sub}`);
+
+                    if (sub === activeSubject) {
+                        card.classList.add('active');
+                        icon.innerText = '⏸';
+                        text.innerText = '暂停计时';
+                    } else {
+                        card.classList.remove('active');
+                        icon.innerText = '▶';
+                        text.innerText = '开始计时';
+                    }
+                }
+            }
+
+            document.getElementById('time-total').innerText = formatTime(totalSeconds);
+        }
+
+        function startLoop() {
+            if (intervalId) clearInterval(intervalId);
+            lastUpdateTime = Date.now();
+            
+            intervalId = setInterval(() => {
+                if (activeSubject) {
+                    const now = Date.now();
+                    const delta = Math.floor((now - lastUpdateTime) / 1000);
+                    
+                    if (delta >= 1) {
+                        timers[activeSubject] += delta;
+                        lastUpdateTime += delta * 1000;
+                        
+                        localStorage.setItem(`timer_${activeSubject}`, timers[activeSubject]);
+                        updateDisplay();
+                    }
+                }
+            }, 200);
+        }
+
+        function toggleTimer(subject) {
+            if (activeSubject === subject) {
+                activeSubject = null;
+            } else {
+                activeSubject = subject;
+            }
+            
+            localStorage.setItem('active_subject', activeSubject || '');
+            lastUpdateTime = Date.now();
+            updateDisplay();
+        }
+
+        window.onload = function() {
+            updateDisplay();
+            startLoop();
+        };
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                lastUpdateTime = Date.now();
+            }
+        });
+    </script>
+</body>
+</html>
