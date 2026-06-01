@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>High School & Computer Study Tracker</title>
+    <title>Study Tracker & Time Log</title>
     <style>
         :root {
             --bg-color: #0b0f19;
@@ -51,16 +51,10 @@
             letter-spacing: 2px;
             text-transform: uppercase;
             text-shadow: 0 0 10px var(--accent-glow);
-            margin-bottom: 0.5rem;
         }
 
         header h1 span {
             color: var(--miku-cyan);
-        }
-
-        header p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
         }
 
         /* 互斥状态栏 */
@@ -138,12 +132,6 @@
             font-weight: 600;
             color: var(--text-main);
             margin-bottom: 0.4rem;
-        }
-
-        /* 高亮外挂学科 computer */
-        .subject-name.computer-highlight {
-            color: var(--miku-cyan);
-            font-weight: 700;
         }
 
         .time-display {
@@ -225,7 +213,6 @@
     <div class="container">
         <header>
             <h1>STUDY <span>TRACKER</span></h1>
-            <p>持续沉淀 · 无法重置的千小时大计划</p>
         </header>
 
         <div class="status-bar">
@@ -299,7 +286,7 @@
 
             <div class="subject-card" id="card-computer">
                 <div class="subject-info">
-                    <div class="subject-name computer-highlight">computer</div>
+                    <div class="subject-name">computer</div>
                     <div class="time-display" id="time-computer">0000:00:00</div>
                 </div>
                 <button class="btn-control" onclick="toggleTimer('computer')">
@@ -315,7 +302,6 @@
     </div>
 
     <script>
-        // 初始化秒数，从本地浏览器缓存（localStorage）读取
         let timers = {
             chinese: parseInt(localStorage.getItem('timer_chinese')) || 0,
             math: parseInt(localStorage.getItem('timer_math')) || 0,
