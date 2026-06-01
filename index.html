@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Study Tracker & Time Log</title>
+    <title>High School & Computer Study Tracker</title>
     <style>
         :root {
             --bg-color: #0b0f19;
@@ -35,7 +35,7 @@
 
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
         }
 
         header {
@@ -91,10 +91,10 @@
             box-shadow: 0 0 8px var(--miku-green);
         }
 
-        /* 学科卡片布局 */
+        /* 学科卡片自适应网格布局 */
         .subjects-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -138,11 +138,12 @@
             font-weight: 600;
             color: var(--text-main);
             margin-bottom: 0.4rem;
-            text-transform: capitalize;
         }
 
-        .subject-name.computer {
+        /* 特别高亮外挂学科 computer */
+        .subject-name.computer-highlight {
             color: var(--miku-cyan);
+            font-weight: 700;
         }
 
         .time-display {
@@ -244,148 +245,14 @@
         </div>
 
         <div class="subjects-grid">
-            <div class="subject-card" id="card-math">
+            <div class="subject-card" id="card-chinese">
                 <div class="subject-info">
-                    <div class="subject-name">Mathematics</div>
-                    <div class="time-display" id="time-math">0000:00:00</div>
+                    <div class="subject-name">Chinese</div>
+                    <div class="time-display" id="time-chinese">0000:00:00</div>
                 </div>
-                <button class="btn-control" onclick="toggleTimer('math')">
-                    <span class="icon" id="icon-math">▶</span> <span id="text-math">开始计时</span>
+                <button class="btn-control" onclick="toggleTimer('chinese')">
+                    <span class="icon" id="icon-chinese">▶</span> <span id="text-chinese">开始计时</span>
                 </button>
             </div>
 
-            <div class="subject-card" id="card-physics">
-                <div class="subject-info">
-                    <div class="subject-name">Physics</div>
-                    <div class="time-display" id="time-physics">0000:00:00</div>
-                </div>
-                <button class="btn-control" onclick="toggleTimer('physics')">
-                    <span class="icon" id="icon-physics">▶</span> <span id="text-physics">开始计时</span>
-                </button>
-            </div>
-
-            <div class="subject-card" id="card-computer">
-                <div class="subject-info">
-                    <div class="subject-name computer">computer</div>
-                    <div class="time-display" id="time-computer">0000:00:00</div>
-                </div>
-                <button class="btn-control" onclick="toggleTimer('computer')">
-                    <span class="icon" id="icon-computer">▶</span> <span id="text-computer">开始计时</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="total-panel">
-            <div class="total-title">Total Study Time</div>
-            <div class="total-time" id="time-total">0000:00:00</div>
-        </div>
-    </div>
-
-    <footer>
-        <p>主体核心驱动 · 外部大脑协助构建</p>
-    </footer>
-
-    <script>
-        // 初始化每个学科的秒数，优先从本地浏览器缓存（localStorage）读取
-        let timers = {
-            math: parseInt(localStorage.getItem('timer_math')) || 0,
-            physics: parseInt(localStorage.getItem('timer_physics')) || 0,
-            computer: parseInt(localStorage.getItem('timer_computer')) || 0
-        };
-
-        // 读取上次刷新的活动状态
-        let activeSubject = localStorage.getItem('active_subject') || null;
-        let intervalId = null;
-        let lastUpdateTime = Date.now();
-
-        // 格式化秒数为 HHHH:MM:SS 格式
-        function formatTime(totalSeconds) {
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-
-            const paddedHours = String(hours).padStart(4, '0');
-            const paddedMinutes = String(minutes).padStart(2, '0');
-            const paddedSeconds = String(seconds).padStart(2, '0');
-
-            return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
-        }
-
-        // 全局UI同步刷新
-        function updateDisplay() {
-            let totalSeconds = 0;
             
-            for (let sub in timers) {
-                document.getElementById(`time-${sub}`).innerText = formatTime(timers[sub]);
-                totalSeconds += timers[sub];
-
-                const card = document.getElementById(`card-${sub}`);
-                const icon = document.getElementById(`icon-${sub}`);
-                const text = document.getElementById(`text-${sub}`);
-
-                if (sub === activeSubject) {
-                    card.classList.add('active');
-                    icon.innerText = '⏸';
-                    text.innerText = '暂停计时';
-                } else {
-                    card.classList.remove('active');
-                    icon.innerText = '▶';
-                    text.innerText = '开始计时';
-                }
-            }
-
-            // 更新总累计时间
-            document.getElementById('time-total').innerText = formatTime(totalSeconds);
-        }
-
-        // 核心高精度定时轮询
-        function startLoop() {
-            if (intervalId) clearInterval(intervalId);
-            lastUpdateTime = Date.now();
-            
-            intervalId = setInterval(() => {
-                if (activeSubject) {
-                    const now = Date.now();
-                    // 使用物理时间差校准，杜绝任何因系统休眠导致的漏秒、少秒
-                    const delta = Math.floor((now - lastUpdateTime) / 1000);
-                    
-                    if (delta >= 1) {
-                        timers[activeSubject] += delta;
-                        lastUpdateTime += delta * 1000;
-                        
-                        // 毫秒级防丢失存储
-                        localStorage.setItem(`timer_${activeSubject}`, timers[activeSubject]);
-                        updateDisplay();
-                    }
-                }
-            }, 200);
-        }
-
-        // 切换计时状态（包含纯互斥逻辑：点击一门，其他自动在后台保持原数据暂停）
-        function toggleTimer(subject) {
-            if (activeSubject === subject) {
-                activeSubject = null; // 再次点击当前正在跑的学科，即暂停
-            } else {
-                activeSubject = subject; // 切换到新学科，旧的自动在后台保持不动
-            }
-            
-            localStorage.setItem('active_subject', activeSubject || '');
-            lastUpdateTime = Date.now();
-            updateDisplay();
-        }
-
-        // 页面入口加载
-        window.onload = function() {
-            updateDisplay();
-            startLoop();
-        };
-
-        // 切换标签页或手机息屏唤醒时，强制校准基准物理时间戳
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                lastUpdateTime = Date.now();
-            }
-        });
-    </script>
-</body>
-</html>
