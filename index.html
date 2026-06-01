@@ -3,320 +3,389 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Study Tracker | 学习计时看板</title>
+    <title>Study Tracker & Time Log</title>
     <style>
         :root {
-            --bg-color: #0d1117;
-            --card-bg: #161b22;
-            --text-main: #c9d1d9;
-            --text-muted: #8b949e;
-            --accent-cyan: #39c5bb; /* 极客科技感青色 */
-            --accent-glow: rgba(57, 197, 187, 0.2);
-            --danger-color: #f85149;
-            --border-color: #30363d;
+            --bg-color: #0b0f19;
+            --card-bg: #161f33;
+            --text-main: #f0f5ff;
+            --text-muted: #8a9fc2;
+            --miku-cyan: #00f3ff;
+            --miku-green: #00ffcc;
+            --accent-glow: rgba(0, 243, 255, 0.2);
+            --border-color: #24355a;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
             padding: 2rem 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
         }
 
         header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
+            position: relative;
         }
 
         header h1 {
-            font-size: 2rem;
-            font-weight: 600;
-            letter-spacing: 1px;
+            font-size: 2.2rem;
+            font-weight: 700;
             color: var(--text-main);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px var(--accent-glow);
             margin-bottom: 0.5rem;
+        }
+
+        header h1 span {
+            color: var(--miku-cyan);
         }
 
         header p {
             color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
-        /* 学科网格布局 */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        /* 学科卡片样式 */
-        .card {
-            background-color: var(--card-bg);
+        /* 互斥状态栏 */
+        .status-bar {
+            background: rgba(22, 31, 51, 0.6);
             border: 1px solid var(--border-color);
+            padding: 0.8rem 1.2rem;
             border-radius: 12px;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        /* 正在计时的卡片高亮效果 */
-        .card.active {
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        .subject-name {
-            font-size: 1.4rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
+            margin-bottom: 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-size: 0.9rem;
         }
 
-        .subject-name .status-dot {
+        .status-mode {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+        }
+
+        .status-mode .dot {
             width: 8px;
             height: 8px;
+            background-color: var(--miku-green);
             border-radius: 50%;
-            background-color: transparent;
+            box-shadow: 0 0 8px var(--miku-green);
         }
 
-        .card.active .status-dot {
-            background-color: var(--accent-cyan);
-            animation: pulse 1.5s infinite;
+        /* 学科卡片布局 */
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .subject-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .subject-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: transparent;
+            transition: background 0.3s;
+        }
+
+        .subject-card.active {
+            border-color: var(--miku-cyan);
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        .subject-card.active::before {
+            background: linear-gradient(to bottom, var(--miku-cyan), var(--miku-green));
+        }
+
+        .subject-info {
+            margin-bottom: 1.2rem;
+        }
+
+        .subject-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.4rem;
+            text-transform: capitalize;
+        }
+
+        .subject-name.computer {
+            color: var(--miku-cyan);
         }
 
         .time-display {
-            margin-bottom: 1.5rem;
-        }
-
-        .current-session {
-            font-size: 2rem;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1.8rem;
+            font-weight: 700;
             color: var(--text-main);
-            margin-bottom: 0.25rem;
+            letter-spacing: 1px;
+            margin-top: 0.5rem;
         }
 
-        .card.active .current-session {
-            color: var(--accent-cyan);
+        .subject-card.active .time-display {
+            color: var(--miku-green);
+            text-shadow: 0 0 8px rgba(0, 255, 204, 0.3);
         }
 
-        .total-accumulated {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        /* 按钮设计 */
-        .btn-group {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: auto;
-        }
-
-        button {
-            flex: 1;
+        /* 控制按钮 */
+        .btn-control {
+            width: 100%;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
             padding: 0.75rem;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.95rem;
+            border-radius: 10px;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .btn-toggle {
-            background-color: var(--border-color);
-            color: var(--text-main);
+        .btn-control:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-muted);
         }
 
-        .card.active .btn-toggle {
-            background-color: var(--accent-cyan);
-            color: #000;
+        .subject-card.active .btn-control {
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.1), rgba(0, 255, 204, 0.1));
+            border-color: var(--miku-cyan);
+            color: var(--miku-cyan);
         }
 
-        .btn-toggle:hover {
-            opacity: 0.9;
+        .subject-card.active .btn-control:hover {
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.2), rgba(0, 255, 204, 0.2));
         }
 
-        .btn-reset {
-            background-color: transparent;
-            color: var(--text-muted);
+        /* 总计面板 */
+        .total-panel {
+            background: linear-gradient(135deg, #161f33 0%, #111827 100%);
             border: 1px solid var(--border-color);
-            flex: 0 0 60px;
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .total-title {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .total-time {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 2.4rem;
+            font-weight: bold;
+            color: var(--miku-cyan);
+            text-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+        }
+
+        footer {
+            margin-top: auto;
+            padding-top: 2rem;
+            color: var(--text-muted);
             font-size: 0.8rem;
-        }
-
-        .btn-reset:hover {
-            border-color: var(--danger-color);
-            color: var(--danger-color);
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.4; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        @media (max-width: 600px) {
-            .grid-container {
-                grid-template-columns: 1fr;
-            }
+            text-align: center;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>STUDY TRACKER</h1>
-        <p>专注于当下 · 互斥计时模式（开启一门将自动暂停其他学科）</p>
-    </header>
+    <div class="container">
+        <header>
+            <h1>STUDY <span>TRACKER</span></h1>
+            <p>持续沉淀 · 无法重置的千小时大计划</p>
+        </header>
 
-    <div class="grid-container" id="timer-grid">
+        <div class="status-bar">
+            <div class="status-mode">
+                <div class="dot"></div>
+                <span>互斥模式已启用 (开启一门会自动暂停其他)</span>
+            </div>
+            <div style="color: var(--text-muted);">状态: 运行中</div>
         </div>
 
+        <div class="subjects-grid">
+            <div class="subject-card" id="card-math">
+                <div class="subject-info">
+                    <div class="subject-name">Mathematics</div>
+                    <div class="time-display" id="time-math">0000:00:00</div>
+                </div>
+                <button class="btn-control" onclick="toggleTimer('math')">
+                    <span class="icon" id="icon-math">▶</span> <span id="text-math">开始计时</span>
+                </button>
+            </div>
+
+            <div class="subject-card" id="card-physics">
+                <div class="subject-info">
+                    <div class="subject-name">Physics</div>
+                    <div class="time-display" id="time-physics">0000:00:00</div>
+                </div>
+                <button class="btn-control" onclick="toggleTimer('physics')">
+                    <span class="icon" id="icon-physics">▶</span> <span id="text-physics">开始计时</span>
+                </button>
+            </div>
+
+            <div class="subject-card" id="card-computer">
+                <div class="subject-info">
+                    <div class="subject-name computer">computer</div>
+                    <div class="time-display" id="time-computer">0000:00:00</div>
+                </div>
+                <button class="btn-control" onclick="toggleTimer('computer')">
+                    <span class="icon" id="icon-computer">▶</span> <span id="text-computer">开始计时</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="total-panel">
+            <div class="total-title">Total Study Time</div>
+            <div class="total-time" id="time-total">0000:00:00</div>
+        </div>
+    </div>
+
+    <footer>
+        <p>主体核心驱动 · 外部大脑协助构建</p>
+    </footer>
+
     <script>
-        // 初始化7个学科
-        const subjectsConfig = [
-            { id: 'math', name: '数学' },
-            { id: 'physics', name: '物理' },
-            { id: 'chemistry', name: '化学' },
-            { id: 'biology', name: '生物' },
-            { id: 'chinese', name: '语文' },
-            { id: 'english', name: '英语' },
-            { id: 'cs', name: 'CS' }
-        ];
+        // 初始化每个学科的秒数，优先从本地浏览器缓存（localStorage）读取
+        let timers = {
+            math: parseInt(localStorage.getItem('timer_math')) || 0,
+            physics: parseInt(localStorage.getItem('timer_physics')) || 0,
+            computer: parseInt(localStorage.getItem('timer_computer')) || 0
+        };
 
-        // 从 LocalStorage 读取历史累计数据，若无则初始化
-        let store = JSON.parse(localStorage.getItem('study_tracker_data')) || {};
-        
-        let activeSubjectId = null; 
-        let timerInterval = null;
-        let startTime = 0; // 本次跑表开始时的系统时间戳
-        let passedTime = 0; // 本次跑表已经累计的时间（毫秒）
+        // 读取上次刷新的活动状态
+        let activeSubject = localStorage.getItem('active_subject') || null;
+        let intervalId = null;
+        let lastUpdateTime = Date.now();
 
-        // 格式化时间：毫秒 -> hh:mm:ss
-        function formatTime(ms) {
-            const totalSeconds = Math.floor(ms / 1000);
+        // 格式化秒数为 HHHH:MM:SS 格式
+        function formatTime(totalSeconds) {
             const hours = Math.floor(totalSeconds / 3600);
             const minutes = Math.floor((totalSeconds % 3600) / 60);
             const seconds = totalSeconds % 60;
 
-            const pad = (num) => String(num).padStart(2, '0');
-            return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+            const paddedHours = String(hours).padStart(4, '0');
+            const paddedMinutes = String(minutes).padStart(2, '0');
+            const paddedSeconds = String(seconds).padStart(2, '0');
+
+            return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
         }
 
-        // 初始化渲染页面
-        const grid = document.getElementById('timer-grid');
-        subjectsConfig.forEach(sub => {
-            if (!store[sub.id]) {
-                store[sub.id] = { total: 0 }; // 初始累计时间为0
-            }
-
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.id = `card-${sub.id}`;
-            card.innerHTML = `
-                <div class="subject-name">
-                    <span>${sub.name}</span>
-                    <div class="status-dot"></div>
-                </div>
-                <div class="time-display">
-                    <div class="current-session" id="current-${sub.id}">00:00:00</div>
-                    <div class="total-accumulated" id="total-${sub.id}">累计: ${formatTime(store[sub.id].total)}</div>
-                </div>
-                <div class="btn-group">
-                    <button class="btn-toggle" onclick="toggleTimer('${sub.id}')" id="btn-${sub.id}">开始计时</button>
-                    <button class="btn-reset" onclick="resetTotal('${sub.id}')">重置</button>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
-
-        // 计时核心逻辑
-        function toggleTimer(id) {
-            // 情况1：点击了当前正在计时的学科 -> 停止计时
-            if (activeSubjectId === id) {
-                stopCurrentTimer();
-                return;
-            }
-
-            // 情况2：点击了其他学科，且当前有学科正在计时 -> 先停掉旧的
-            if (activeSubjectId !== null) {
-                stopCurrentTimer();
-            }
-
-            // 启动新学科计时
-            activeSubjectId = id;
-            startTime = Date.now();
-            passedTime = 0;
-
-            document.getElementById(`card-${id}`).classList.add('active');
-            document.getElementById(`btn-${id}`).innerText = '结束计时';
-
-            // 核心：使用差值计算法，即使后台挂起，Date.now() 也是绝对准确的
-            timerInterval = setInterval(() => {
-                passedTime = Date.now() - startTime;
-                document.getElementById(`current-${id}`).innerText = formatTime(passedTime);
-            }, 200); // 200ms刷新一次UI保证丝滑
-        }
-
-        function stopCurrentTimer() {
-            if (activeSubjectId === null) return;
-
-            clearInterval(timerInterval);
+        // 全局UI同步刷新
+        function updateDisplay() {
+            let totalSeconds = 0;
             
-            // 将本次跑表所得的精确毫秒数累加进总时间
-            store[activeSubjectId].total += passedTime;
-            localStorage.setItem('study_tracker_data', JSON.stringify(store));
+            for (let sub in timers) {
+                document.getElementById(`time-${sub}`).innerText = formatTime(timers[sub]);
+                totalSeconds += timers[sub];
 
-            // 更新UI
-            document.getElementById(`total-${activeSubjectId}`).innerText = `累计: ${formatTime(store[activeSubjectId].total)}`;
-            document.getElementById(`current-${activeSubjectId}`).innerText = '00:00:00';
-            document.getElementById(`card-${activeSubjectId}`).classList.remove('active');
-            document.getElementById(`btn-${activeSubjectId}`).innerText = '开始计时';
+                const card = document.getElementById(`card-${sub}`);
+                const icon = document.getElementById(`icon-${sub}`);
+                const text = document.getElementById(`text-${sub}`);
 
-            // 状态清空
-            activeSubjectId = null;
-            passedTime = 0;
-        }
-
-        // 重置某一学科的累计时间
-        function resetTotal(id) {
-            if (confirm(`确定要清空【${subjectsConfig.find(s => s.id === id).name}】的累计时间吗？`)) {
-                if (activeSubjectId === id) {
-                    clearInterval(timerInterval);
-                    document.getElementById(`card-${id}`).classList.remove('active');
-                    document.getElementById(`btn-${id}`).innerText = '开始计时';
-                    activeSubjectId = null;
+                if (sub === activeSubject) {
+                    card.classList.add('active');
+                    icon.innerText = '⏸';
+                    text.innerText = '暂停计时';
+                } else {
+                    card.classList.remove('active');
+                    icon.innerText = '▶';
+                    text.innerText = '开始计时';
                 }
-                store[id].total = 0;
-                passedTime = 0;
-                localStorage.setItem('study_tracker_data', JSON.stringify(store));
-                document.getElementById(`current-${id}`).innerText = '00:00:00';
-                document.getElementById(`total-${id}`).innerText = `累计: ${formatTime(0)}`;
             }
+
+            // 更新总累计时间
+            document.getElementById('time-total').innerText = formatTime(totalSeconds);
         }
 
-        // 页面关闭或刷新前，如果还在计时，自动保存
-        window.onbeforeunload = function() {
-            if (activeSubjectId !== null) {
-                stopCurrentTimer();
+        // 核心高精度定时轮询
+        function startLoop() {
+            if (intervalId) clearInterval(intervalId);
+            lastUpdateTime = Date.now();
+            
+            intervalId = setInterval(() => {
+                if (activeSubject) {
+                    const now = Date.now();
+                    // 使用物理时间差校准，杜绝任何因系统休眠导致的漏秒、少秒
+                    const delta = Math.floor((now - lastUpdateTime) / 1000);
+                    
+                    if (delta >= 1) {
+                        timers[activeSubject] += delta;
+                        lastUpdateTime += delta * 1000;
+                        
+                        // 毫秒级防丢失存储
+                        localStorage.setItem(`timer_${activeSubject}`, timers[activeSubject]);
+                        updateDisplay();
+                    }
+                }
+            }, 200);
+        }
+
+        // 切换计时状态（包含纯互斥逻辑：点击一门，其他自动在后台保持原数据暂停）
+        function toggleTimer(subject) {
+            if (activeSubject === subject) {
+                activeSubject = null; // 再次点击当前正在跑的学科，即暂停
+            } else {
+                activeSubject = subject; // 切换到新学科，旧的自动在后台保持不动
             }
+            
+            localStorage.setItem('active_subject', activeSubject || '');
+            lastUpdateTime = Date.now();
+            updateDisplay();
+        }
+
+        // 页面入口加载
+        window.onload = function() {
+            updateDisplay();
+            startLoop();
         };
+
+        // 切换标签页或手机息屏唤醒时，强制校准基准物理时间戳
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                lastUpdateTime = Date.now();
+            }
+        });
     </script>
 </body>
 </html>
